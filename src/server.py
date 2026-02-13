@@ -19,10 +19,15 @@ def server_program():
     server_socket.listen(1)
 
     conn, address = server_socket.accept()  # accept new connection
-    conn.send(public_key.export_key())  # send the public key to the client
+    
 
     hello = conn.recv(1024).decode()
     print("Connection from: " + str(address))
+    print("Client says: " + hello)
+
+    conn.send(b'HELLO RSA-AES-256-GCM')
+
+    conn.send(public_key.export_key())  # send the public key to the client
 
     encrypted_key = conn.recv(4096)  # receive the encrypted AES key from the client
     cipher_rsa = PKCS1_OAEP.new(private_key)

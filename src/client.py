@@ -20,10 +20,15 @@ def client_program():
     client_socket = socket.socket()  # instantiate
     client_socket.connect((host, port))  # connect to the server
 
-    public_key_data = client_socket.recv(4096)  # receive public key from the server
-    public_key = RSA.import_key(public_key_data)  # import the public key
+    
 
     client_socket.send(b'HELLO RSA-AES-256-GCM')
+
+    hello = client_socket.recv(1024).decode()
+    print("Server says: " + hello)
+
+    public_key_data = client_socket.recv(4096)  # receive public key from the server
+    public_key = RSA.import_key(public_key_data)  # import the public key
 
     aes_key = get_random_bytes(32) 
 
