@@ -1,9 +1,17 @@
 import socket
+import os
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import PKCS1_OAEP
 
+FILE_REQUESTED = "data/server_data/example.txt"
+FILE_CREATED = "data/client_data/received_file.txt"
+
+def prepare():
+    if os.path.exists(FILE_CREATED):
+        os.remove(FILE_CREATED)
+        print(f"Removed old file: {FILE_CREATED}")
 
 def client_program():
     host = socket.gethostname()  # as both code is running on same pc
@@ -24,9 +32,7 @@ def client_program():
 
     client_socket.send(encrypted_key)
 
-    file_bytes = b''
-
-    file_request = 'example.txt'
+    file_request = FILE_REQUESTED
     client_socket.send(file_request.encode())  # send file request
 
     nonce = client_socket.recv(16)
@@ -35,14 +41,18 @@ def client_program():
 
     while True:
         chunk = client_socket.recv(1024)
+        print('Chunk: ', chunk)
         if not chunk:
             break
         ciphertext += chunk
 
+    print('Ciphertext: ', ciphertext)
     cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
     plaintext = cipher.decrypt_and_verify(ciphertext, tag)
 
-    with open("received_file.txt", "wb") as f:
+    print('Plaintext: ', plaintext)
+
+    with open(FILE_CREATED, "wb") as f:
         f.write(plaintext)
         
     print("File received successfully.")
@@ -50,4 +60,5 @@ def client_program():
 
 
 if __name__ == '__main__':
+    prepare()
     client_program()

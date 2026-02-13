@@ -8,8 +8,8 @@ import server
 import client
 
 
-TEST_FILE = "example.txt"
-RECEIVED_FILE = "received_file.txt"
+TEST_FILE = "data/server_data/example.txt"
+RECEIVED_FILE = "data/client_data/received_file.txt"
 
 
 def hash_file(path):
