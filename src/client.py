@@ -5,6 +5,9 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import PKCS1_OAEP
 
+"data/server_data/example.txt"
+"data/server_data/Analisis_del_Codigo_Fuente_y_Metricas_Asociadas_S2_20250319.txt"
+
 FILE_REQUESTED = "data/server_data/example.txt"
 FILE_CREATED = "data/client_data/received_file.txt"
 

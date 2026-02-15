@@ -1,0 +1,990 @@
+# Analisis del codigo fuente y métricas asociadas
+
+## Índice
+
+1. [Análisis dashboard](#análisis-dashboard)
+    - [Sprint 1](#analisis-dashboard-1)
+    - [Sprint 2](#analisis-dashboard-2)
+2. [Análisis Code Smell](#análisis-code-smell)
+    - [Sprint 1](#sprint1-code-smell)
+    - [Sprint 2](#sprint2-code-smell)
+3. [Análisis de los bugs potenciales del S1](#analisis-bugs-potenciales-1)
+    - [Backend](#analisis-bugs-potenciales-1-backend)
+        - [Call "Optional#isPresent()" or "!Optional#isEmpty()" before accessing the value](#1-call-optionalispresent-or-optionalisempty-before-accessing-the-value)
+        - [Remove this conditional structure or edit its code blocks so that they're not all the same](#2-remove-this-conditional-structure-or-edit-its-code-blocks-so-that-theyre-not-all-the-same)
+        - [Bind path variable "petId" to a method parameter](#3-bind-path-variable-petid-to-a-method-parameter)
+    - [Frontend](#analisis-bugs-potenciales-1-frontend)
+        - [Unexpected duplicate](#1-unexpected-duplicate)
+        - [Unexpected missing generic font family](#2-unexpected-missing-generic-font-family)
+        - [Remove this conditional structure or edit its code blocks so they are not the same](#3-remove-this-conditional-structure-or-edit-its-code-blocks-so-they-are-not-the-same)
+        - [Use callback in setState when referencing the previous state](#4-use-callback-in-setstate-when-referencing-the-previous-state)
+4. [Análisis de los bugs potenciales del S2](#análisis-de-los-bugs-potenciales-del-s2)
+    - [Backend S2](#backend-s2)
+        - [Strings and Boxed types should be compared using "equals()"](#strings-and-boxed-types-should-be-compared-using-equals)
+5. [Conclusiones S1](#conclusiones-s1)
+6. [Conclusiones S2](#conclusiones-s2)
+
+## Análisis Dashboard
+### <p id="analisis-dashboard-1">Sprint 1</p>
+
+![dashboardBackend](../resources/dashboardBackend.png)
+![dashboardFrontend](../resources/dashboardFrontend.png)
+El dashboard de SonarQube es la interfaz principal donde se presentan las métricas y análisis de calidad del código de un proyecto. Desde allí, los desarrolladores podemos visualizar el estado general del código en términos de fiabilidad, seguridad, mantenibilidad, cobertura y duplicación.
+Analizaremos las métricas de los dashboards correspondientes tanto al backend como al frontend. Las métricas son clasificadas según su gravedad en Blocker, Critical, Major, Minor e Info y son las siguientes:
+
+- Vulnerabilities:
+Respecto a las vulnerabilidades, se trata de una medida de la seguridad del proyecto que mide el número de fallos de seguridad que podrían ser aprovechados por atacantes. Dichas vulnerabilidades afectan a la calificación de seguridad del proyecto que varía entre A y E siendo la A la mejor de ellas. Como se observa en las imágenes, para el backend no existen vulnerabilidades por el momento lo que conlleva a una calificación A de la seguridad del proyecto. Sin embargo, en el frontend existen 2 vulnerabilidades de tipo Blocker lo que deriva en una calificación E de la seguridad. No se sabe a ciencia cierta pero estas vulnerabilidades pueden existir por las implementaciones realizadas en las tareas de código.
+
+- Bugs:
+La métrica de Bugs es una medida de fiabilidad de tipo directa (influye solo 1 atributo) que mide posibles defectos en el código que pueden provocar fallos en tiempo de ejecución. Como se puede observar en las imágenes, existen 4 bugs con una criticidad Major en el backend lo que conlleva a una calificación C de la fiabilidad del proyecto. En cuanto al frontend, las estadísticas reflejan que el código es de peor calidad al existir 24 bugs de tipo Major. Esto se puede deber a que las principales funcionalidades y cambios fueron añadidos en la parte de frontend. Las tareas A1.5 se centraban principalmente en frontend y una pequeña parte en el backend de las habitaciones de hotel. Por ello, fruto de realizar dichas tareas en frontend pueden existir más bugs en esta parte del código.
+
+- Code Smells:
+Un Code Smell es una caractetística del código de un programa que no es incorrecto funcionalmente pero que dificulta el mantenimiento, aumenta la deuda técnica y puede generar graves problemas en el futuro. Algunos Code Smells pueden ser métodos demasiado largos, clases demasiado extensas, excesivo uso de tipos primitivos o grandes listas de parámetros. Esta métrica influye en la califiación de la mantenibilidad de un proyecto. En cuanto al backend, existen 125 Code Smells mientras que en el frontend existe una ligera mejoría al haber 106 obteniendo así una calificación A de la mantenibilidad tanto para backend como para frontend. Parte de estos code smells pueden haber aparecido al realizar las tareas de código.
+
+- Accepted issues:
+Los Accepted Issues son problemas (Bugs, Vulnerabilities o Code Smells) que han sido detectados por el análisis, pero que un desarrollador o revisor ha decidido aceptar en lugar de corregir. Algunos casos en los que los desarrolladores podemos aceptar un issue son:
+    1. El análisis marcó algo como un problema, pero realmente no lo es.
+    2. El equipo considera que el problema no justifica el esfuerzo de corregirlo.
+    3. En ciertos casos, un problema puede ser válido dentro de la lógica del proyecto.
+Tanto en backend como en frontend no existen Accepted Issues.
+
+- Coverage:
+La métrica Coverage mide la cobertura de código por pruebas y se usa para evaluar qué porcentaje del código ha sido ejecutado por los tests.
+Analiza el porcentaje de líneas que hay cubiertas y el porcentaje de condiciones cubiertas. Como se puede observar en las imágenes, el backend tiene un 78% del código cubierto lo que es un valor bueno siendo lo ideal un 90% o superior. Sin embargo, respecto al frontend, el porcentaje se encuentra a 0 con lo que se deduce que no hay ningún test del frontend siendo un muy mal indicador. En cuanto al porcentaje de código de cubierto por los tests, no hemos implementado ningún test y por tanto es el porcentaje base del proyecto pet-clinic.
+
+- Duplications:
+La métrica Duplications en SonarQube mide el porcentaje de código duplicado dentro de un proyecto. Es una métrica de mantenibilidad ya que el código duplicado dificulta el mantenimiento y aumenta la deuda técnica. SonarQube analiza las líneas, bloques y archivos duplicados. Respecto al backend, el código se puede considerar de calidad al existir un 0,4% de código duplicado en 6000 líneas. Por otro lado, el porcentaje del frontend es bastante mayor alcanzando un 16,1% sobre 13000 líneas lo que significa que existe cierta duplicación. Esta diferencia puede existir por las tareas de código en las que se modificó el frontend principalmente pudiendose aumentar las líneas de código duplicado.
+
+- Security Hotspots:
+La métrica Security Hotspots mide secciones del código que podrían representar riesgos de seguridad, pero que requieren revisión manual para determinar si realmente son vulnerabilidades. El desarrollador debe analizarlo y decidir si es seguro o hay que realizar alguna corrección. Se diferencian de las vulnerabilities en que estas si son problemas de seguridad confirmados mientras que los Security Hotspots pueden no serlo. La calificación asociada depende del porcentaje de Security HotSpots que han sido revisados. En cuando al backend, existen 2 Hotspots y ambos sin revisar lo que lleva a una calificación E. Mientras que en el frontend se observa 1 Hotspot sin revisar. Sería recomendable revisar todos los HotSpots para mejorar la calificación asegurar una mayor seguridad. Dichos puntos vulnerables pueden haberse creado durante la resolución de las tareas de código en la parte de frontend y backend.
+
+### <p id="analisis-dashboard-2">Sprint 2</p>
+![DashboardS2](../resources/DashboardS2.png)
+
+A continuación, vamos a realizar un análisis del dashboard del segundo Sprint para cada métrica y las compararemos con los resultados del primer Sprint:
+
+- Vulnerabilities:
+Respecto a las vulnerabilidades, no se ha eliminado ni añadido ninguna vulnerabilidad lo que significa que el código no ha empeorado ni mejorado respecto a la seguridad. Esto es algo que consideramos positivo ya que se han añadido y modificado numerosas funcionalidades sin añadir vulnerabilidades.
+
+- Bugs:
+En cuanto a los bugs del frontend, no han aumentado respecto al primer Sprint lo que significa que el código añadido en frontend es correcto. Sin embargo, en cuanto al backend se han encontrado 7 bugs lo que significa un incremento en 4 respecto al anterior sprint. Estos nuevos bugs se corresponden al código de Adoption y de Booking. Como se observa en las siguientes imagenes.
+
+![bugs frontend 1](../resources/bugsFrontend1.png)
+
+![bugs frontend 2](../resources/bugsFrontend2.png)
+
+- Code Smells:
+En cuanto a los Code Smells, se ha incrementado su número tanto en backend (139) como en frontend (137). El mayor incremento se ha producido en el frontend al pasar de 106 a 137. Los nuevos code smells se deben a las funcionalidades de adoptions y bookings principalmente ya que es lo que más código ha añadido. Se pueden observar nuevos Code Smells relativos a estas funcionalidades en las siguientes imágenes.
+
+![code smells backend](../resources/codeSmellsBackend.png)
+![code smells frontend](../resources/codeSmellFrontend.png)
+
+- HotSpots Reviewed:
+Respecto al porcentaje de hotspots revisados, es una métrica no analizada para el primer Sprint ya que el dashboard seleccionado era otro distinto al preferido por la profesora. Para el análisis del Sprint 2, se ha cambiado el dashboard y en este aparecen los hotspots revisados. Este métrica se corresponde al porcentaje de security hotspots revisados. Como no hemos revisasdo ningun hotspot, el porcentaje tanto para backend como frontend se encuentra a 0.
+
+- Coverage:
+El porcentaje de cobertura de código se ha mantenido en 0 respecto al frontend pero ha disminuido respecto al backend. Esto se debe a que no hemos implementado ningún test de frontend y la cantidad de código añadida el backend es bastante grande habiéndose realizado tests únicamente para booking (como indicaba la tarea del product backlog). Por todo ello, es normal que el porcentaje de cobertura haya disminuido ya que la cantidad de código nuevo añadido es bastante mayor al testeado.
+
+- Duplications:
+En cuanto al porcentaje de código duplicado, el backend tiene el mismo porcentaje lo que significa que no se ha añadido ni disminuido código duplicado, mientras que en el frontend se ha disminuído el código repetido (de un 16,1% sobre 13000 líneas a un 15,4% sobre 14000 líneas). Este cambio se puede deber a que hemos añadido una gran cantidad de líneas (1000 líneas) cuya calidad era buena y no tenía código duplicado. Por ello, al añadir líneas al total y no añadir código duplicado, el porcentaje a disminuído.
+
+## Análisis Code Smell
+### <p id="sprint1-code-smell">Sprint 1</p>
+
+Gracias a la herramienta de SonarQube encontramos con facilidad las estadísticas analíticas de nuestro código. En este apartado vamos a hablar del Code Smell del sprint 1, diferenciaremos entre el código de backend y de frontend para anlizarlos por separado. 
+
+- **Backend**: En el proyecto de backend encontramos 125 code smell, los cuales gracias a los filtros de SonarQube podemos agrupar distintos tipos. Además podemos aportar también las tags de estos junto a su localización en el código y su gravedad. 
+
+    - **(Java) Methods with Spring proxy should not be called via "this"**:<p id="methods-with-spring"> Encontramos numerosos code smell con este tipo de problemas (34), los cuales según SonarQube tienen un esfuerzo estimado de 2h 50 min. Este problema ocurre cuando un método de una clase administrada por Spring con un proxy (como @Transactional, @Async, @Cacheable, etc.) es llamado directamente usando this.method(). </p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas de este problema pueden ser llamar un método con @Transactional, @Async, @Cacheable o @Scheduled dentro de la misma clase usando this.method() o no permitir que Spring maneje la ejecución a través de su proxy dinámico.
+        
+        - Una solución común para este code smell puede ser que en lugar de llamar al método a través de this, podemos inyectar la propia clase utilizando Spring y llamarlo desde el bean proxy, así nos aseguramos de que el método transactionalMethod() sea interceptado correctamente por el proxy.
+
+        - Un ejemplo en este caso, donde vemos que se invoca la misma función dentro de su clase.
+
+    ![CodeSmellThis](../resources/CodeSmellThis.png)
+
+    - **(Java) Sections of code should not be commented out**: <p id="sections-of-code">Dentro de los distintos code smell encontramos también 33 problemas de este tipo, que se podrían solucionar con un esfuerzo de 2h 45 min. Estos nos indican que hay fragmentos de código comentados en nuestro código fuente. SonarQube detecta esto porque mantener código comentado puede afectar a la mantenibilidad y legibilidad del código. </p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar problemas de legibilidad y a la hora de entender el código.
+
+        - Las diferentes causas del problema del código muerto que no se va a volver a utilizar pueden ser por refactorización incompleta, miedo a eliminar código o pruebas y depuración temporal.
+
+        - La solución más coherente es simplemente eliminarlo. Podríamos recuperarlo en el historial de control de versiones (Git, SVN, etc.).
+
+        - Un ejemplo de este apartado específico del código, en el que dentro de los métodos hay código comentado que si no se va a utilizar habría que borrar.
+
+    ![CodeSmellBlockCommented](../resources/CodeSmellBlockCommented.png)
+
+    - **(Java) Unnecessary imports should be removed**: Existen 10 problemas de este tipo con un tiempo total de esfuerzo de 10 min. Este nos indica que existen imports dentro de numerosas clases que nos son utilizados. 
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. En este caso no afecta al funcionamiento, pero puede crear confusión.
+
+        - La principal causa de esto es que previamente el desarrollador haya utilizado alguna dependencia que tuvo que importar, pero que posteriormente no eliminó cuando refactorizó el código.
+
+        - Como previamente los comentarios, lo más coherente es eliminar todo aquel import que no sea necesario.
+
+        - Un ejemplo de este es en el ClinicRepository, donde se importa un Map que no tiene uso.
+
+    ![Imports](../resources/CodeSmellImports.png)
+
+    - **(Java) Field dependency injection should be avoided**: <p id="field-dependency-injection">Existen 9 problemas de este tipo con un tiempo de esfuerzo de 45 min, el cual indica que no se recomienda la inyección de dependencias usando campos (@Autowired en atributos de clase). Aunque es una práctica común en Spring, puede traer problemas de testabilidad, encapsulación y acoplamiento.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+         
+        - Las diferentes causas del problema pueden ser falta de experiencia con principios de diseño SOLID o la facilidad de uso de frameworks de inyección de dependencias que puede ocultar la verdadera complejidad.
+
+        - Una solución son usar inyección de dependencias en el constructor, para así hacer que la dependencia sea obligatoria y más fácil de testear. 
+
+        - Un ejemplo de este problema es el siguiente, en el que  @Autowired en un atributo de clase, lo cual SonarQube señala como una mala práctica.
+
+    ![FieldDependency](../resources/CodeSmellFieldDependency.png)
+
+    - **(Java) JUnit5 test classes and methods should have default package visibility**:<p id="junit"> Existen 6 problemas de este tipo con un tiempo de esfuerzo total de 12 min. Este code smell nos indica la recomendación de que las clases y métodos de prueba en JUnit 5 tengan visibilidad de paquete por defecto (sin modificadores de acceso explícitos como public o private).</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Info, lo que implica que es meramente informativo. Son sugerencias o advertencias sobre posibles mejoras en la calidad del código sin impacto funcional.
+    
+        - Las diferentes causas son un encapsulamiento innecesario en un intento de mejora para el mantenimiento.
+
+        - La mejor práctica es no especificar modificador de acceso, dejando que las pruebas tengan visibilidad de paquete.
+        
+        - Un ejemplo de este lo encontramos en AuthServiceTests.java donde el public es innecesario.
+
+    ![JUnit5](../resources/CodeSmellJUnit5.png)
+
+    - **(Java) Chained AssertJ assertions should be simplified to the corresponding dedicated assertion**:<p id="chained"> Existen 4 problemas de este tipo con un tiempo de esfuerzo total de 20 min. Este code smell nos indica que las afirmaciones encadenadas en AssertJ (por ejemplo, assertThat(...).isEqualTo(...).isNotNull()) deberían simplificarse a una única afirmación dedicada que combine todas las verificaciones necesarias.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas son la redundancia, la falta de claridad y la posibilidad de simplificación del código.
+
+        - Una solución lógica para este tipo de problemas es usar aserciones dedicadas en lugar de múltiples aserciones encadenadas o también usar comparaciones directas en una sola aserción y no tener que encadenar dos seguidas.
+
+        - Un ejemplo de este problema lo encontramos en los ValidatorTests.java, donde se puede simplificar la función.
+
+    ![ChainedAsserJ](../resources/CodeSmellChainedAssertJ.png)
+
+    - **(Java) Field names should comply with a naming convention**: <p id="field-names-should-comply">Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este code smell nos indica la recomendación de que los nombres de los campos en Java sigan una convención de nomenclatura consistente, como el uso de camelCase para los nombres de variables.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas son la inconsistencia en el código, la legibilidad y el desconocimento de estándares de nomenclatura como camelCase.
+
+        - Una solución típica sería aplicar a todas las constantes un tipoo de nomenclatura que entre dentor de los estandares de escritura de Java como camelCase o PascalCase.
+    
+        - Un ejemplo de este problema lo encontramos en el PetService, donde encontramos variables escritas en mayúsculas.
+
+    ![FieldNames](../resources/CodeSmellFieldNames.png)
+
+    - **(Java) Parentheses should be removed from a single lambda parameter when its type is inferred**: <p id="parentheses">Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este code smell nos indica  que los paréntesis alrededor de un único parámetro en una expresión lambda deben ser eliminados cuando su tipo se puede inferir automáticamente.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas son el confusión con la sintaxis de las lambdas y falta de familiaridad con el lenguaje.
+
+        - La solución más simple y coherente para este tipo de code smell sería la eliminación de los paréntesis que infieren en las funciones lambdas.
+
+        - Un ejemplo de este problema lo podemos encontrar en SecurityConfiguration.java, donde sobran los paréntesis en una expresión lambda.
+
+    ![Parentheses](../resources/CodeSmellParentheses.png)
+
+    - **(Java) Public constants and fields initialized at declaration should be "static final" rather than merely "final"**: <p id="public-constants">Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este code smell nos sugiere que las constantes públicas y los campos que inicializamos en su declaración deben declararse como static final en lugar de solo final.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas de este pueden ser la confusión sobre el alcance y la intención del campo, prácticas heredadas y posible estilo inconsitente de los desarrolladores.
+
+        - Una solución podría ser que cuando un campo es público y final, y su valor no cambia después de la inicialización, debería ser también static, ya que se espera que el valor sea común para todas las instancias de la clase.
+
+        - Un ejemplo de este lo encontramos en el PetService, donde encontramos constantes sin el static final.
+
+    ![PublicConstants](../resources/CodeSmellPublicConstants.png)
+
+    - **(Java) Standard outputs should not be used directly to log anything**: <p id="standard-outputs">Existen 3 problemas como este en nuestro código con un tiempo total de esfuerzo de 30 min. Este nos indica que no deberíamos usar System.out.println() o System.err.println() para registrar información en logs, ya que esto no es una práctica profesional y afecta a la mantenibilidad del código.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas del problema son el uso de System.out.println() en lugar de un sistema de logging.
+
+        - En lugar de usar System.out.println() o System.err.println(), deberías utilizar una librería de logging adecuada que permita una mayor flexibilidad y control.
+
+        - Un ejemplo de este problema es el siguiente, en el que se utiliza un System.out.println() y este no es una práctica profesional.
+
+    ![StandardOutputs](../resources/CodeSmellStandardOutputs.png)
+
+    - **(Java) Exception classes should have final fields**:<p id="exception-classes"> Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 30 min.
+    Este nos sugiere que las clases de excepciones en Java deben tener campos final para garantizar que los valores de las excepciones no cambien después de su construcción.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas son el cambio inesperado de valores, falta de comprensión sobre inmutabilidad de los desarrolladores y confusión sobre el uso de excepciones personalizadas, ya que no se habría pensado en los beneficios del uso de *final* en los campos.
+
+        - La solución bería ser que cuando crees una clase de excepción, asegúrate de declarar sus campos como final. Esto es especialmente importante para los campos que almacenan información relevante como el mensaje de la excepción, el código de error
+
+        - Un ejemplo de este problema lo encontramos en UpperPlanFeatureException.java, donde se podría poner la constante expected con un final.
+
+    ![ExceptionClasses](../resources/CodeSmellExceptionClasses.png)
+
+    - **(Java) "Stream.toList()" method should be used instead of "collectors" when unmodifiable list needed**:<p id="stream"> Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 10 min. Este code smell indica que, en Java 16+, es preferible usar Stream.toList() en lugar de Collectors.toUnmodifiableList() cuando necesitas una lista inmutable.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las principal causa es la planteada anteriormente que para listas inmutables ya que nos proporciona un código más limpio y conciso con mejor rendimiento, y evita dependencias innecesarias de Collector. 
+
+        - La solución para este tipo de problemas es cambiar los Collectors.toList() por Stream.toList() quitando así la dependencia innecesaria de Collector.
+
+    ![Stream.toList()](../resources/CodeSmellStream.toList().png)
+
+    - **(Java) Exceptions in "throws" clauses should not be superfluous**: <p id="exception-in">Existe 1 problema con un tiempo total de esfuerzo de 5 min. Este nos sugiere que no debemos declarar en la cláusula throws una excepción que no se lanza realmente en el método. Es decir, solo debemos incluir las excepciones que realmente pueden ser lanzadas por el código dentro del método.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas son que a veces agregamos excepciones en la cláusula throws por descuido o la reutilización de métodos en diferentes clases sin ajustarlos.
+
+        - Una solución general para este tipo de code smell son eliminar excepciones no necesarias o manejo interno de excepciones para así no declarar el throw
+    
+        - Este problema lo encontramos en el PetTypeFormatterTests.java, donde hay que quitar la excepción ParseException.
+
+    ![ParseException](../resources/CodeSmellParseException.png)
+
+    - **(Java) Factory method injection should be used in "@Configuration" classes**: <p id="factory">Existe este problema en la clase de SecurityConfiguration.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este sugiere que deberíamos usar la inyección de métodos de fábrica (Factory Method Injection) en las clases anotadas con @Configuration en lugar de crear instancias de beans directamente dentro de los métodos.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Critical, lo que implica que es un problema serio que debe corregirse lo antes posible. Normalmente, se trata de defectos que pueden provocar fallos en la lógica del negocio, errores de ejecución o vulnerabilidades de seguridad.
+
+        - Las diferentes causas son un posible desacoplamiento incorrecto, la dificultad al hacer pruebas o querer realizar código rápido.
+
+        - La solución para este code smell en lugar de inyectar las dependencias directamente en los métodos dentro de una clase @Configuration, deberías usar un método de fábrica para crear los beans de manera explícita.
+
+    ![FactoryMethod](../resources/CodeSmellFactoryMethod.png)
+
+    - **(Java) Lambdas should be replaced with method references**: <p id="lambdas">Este problema está en la clase de SecurityConfiguration.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este code smell sugiere que las expresiones lambda deben ser reemplazadas por referencias a métodos cuando la lambda simplemente invoca un único método sin realizar ninguna lógica adicional.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas son el uso excesivo de lambdas innecesarias por parte de los desarrolladores, la falta de conocimiento sobre referencias a métodos o la comodidad en la escritura.
+
+        - Una solución general para este tipo de code smell puede ser usar referencias a métodos en lugar de expresiones lambda cuando sea posible y cuando la lambda solo invoque un método existente, ya que las referencias a métodos hacen el código más legible.
+
+    ![Lambdas](../resources/CodeSmellLambdas.png)
+
+    - **(Java) Methods should not have identical implementations**: <p id="methods-should-not">Este problema está en la clase de VisitServiceTests.java, esta se puede resolver con un tiempo total de esfuerzo de 15 min. Este code smell nos sugiere que no debemos tener métodos con implementaciones idénticas, ya sea en una clase o en varias. Esto va en contra del principio de DRY (Don't Repeat Yourself), que nos anima a evitar la duplicación de código y a fomentar la reutilización. 
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+    
+        - Las diferentes causas pueden ser por copia y pega sin refactorización, falta de abstracción o tiempo de desarrollador apurado.
+
+        - La solución para este code smell sería refactorizar los métodos para que compartan la misma lógica. Esto se puede hacer creando un único método común que ejecute la lógica compartida, y luego invocar ese método desde otros lugares si es necesario.
+
+    ![UpdateMethod](../resources/CodeSmellUpdateMethod.png)
+
+    - **(Java) Multiple variables should not be declared on the same line**: <p id="multiple-variables">Este problema está en la clase de UpperPlanFeatureException.java, esta se puede resolver con un tiempo total de esfuerzo de 2 min. Este code smell sugiere que no debemos declarar múltiples variables en una misma línea, ya que puede dificultar la lectura y el mantenimiento del código. Cada declaración de variable debe estar en su propia línea para mejorar la claridad.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas pueden ser haber intentado escribir código más compacto para reducir la cantidad de líneas, rápido desarrollo o copia de ejemplos.
+        
+        - Una buena práctica sería declarar una variable por línea, lo que facilita la lectura, modificación y mantenimiento del código. 
+
+    ![MultipleVariables](../resources/CodeSmellMultipleVariables.png)
+
+    - **(Java) Optional REST parameters should have an object type**: <p id="optional">Este problema está en la clase de ClinicOwnerRestController.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este code smell nos sugiere que los parámetros opcionales en métodos de una API REST deben tener un tipo de objeto en lugar de tipos primitivos (como int, boolean, etc.). Usar un tipo de objeto (como Integer en lugar de int) facilita el manejo de valores nulos y mejora la flexibilidad del diseño. </p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la confusión del desarrollador al tratar con valores nulos, alguna práctica de diseño rápido o falta de experiencia con buenas prácticas.
+
+        - Usar tipos de objetos para parámetros opcionales en lugar de tipos primitivos para permitir que el parámetro sea null cuando no se proporciona sería una solución para este tipo de code smell.
+
+    ![OptionalREST](../resources/CodeSmellOptionalRest.png)
+
+    - **(Java) Raw types should not be used**:<p id="raw"> Este problema está en la clase de AuthController.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este code smell nos indica que no debemos usar tipos sin parametrizar (raw types) en Java, es decir, debemos evitar el uso de clases genéricas sin especificar los tipos que deberían ser aceptados. Usar tipos sin parametrizar puede generar problemas de seguridad de tipos y de legibilidad. </p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+        
+        - Las diferentes causas pueden ser la compatibilidad con código antiguo, descuido al implementarlo o falta de refactorización.
+
+        - La solución para este code smell sería utilizar tipos genéricos para mejorar la seguridad de tipos, la legibilidad y la mantenibilidad del código, y así aprovechar las ventajas de la verificación en tiempo de compilación que los generics proporcionan para evitar errores en tiempo de ejecución.
+
+    ![ResponseEntity](../resources/CodeSmellResponseEntity.png)
+
+    - **(Java) Utility classes should not have public constructors**: <p id="utility-classes">Este problema está en la clase de EntityUtils.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este code smell nos sugiere que las clases de utilidad no deberían tener constructores públicos, ya que estas clases están diseñadas para contener solo métodos estáticos y no deben ser instanciadas. Tener un constructor público en una clase de utilidad va en contra de su propósito y puede llevar a la creación innecesaria de instancias.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+    
+        - Las diferentes causas pueden ser desconocimiento de las clases de utilidad, uso de código heredados o antiguos o falta de revisión.
+
+        - Para solucionar estecode smell no se deben usar constructores públicos en clases de utilidad que solo contienen métodos estáticos. Esto evita la creación innecesaria de instancias y asegura que la clase sea usada solo de la manera prevista. Habría que hacer el constructor privado para evitar que la clase sea instanciada accidentalmente.
+        
+    ![UtilityClasses](../resources/CodeSmellUtilityClasses.png)
+
+- **Frontend**: En el proyecto de frontend encontramos 106 code smell, los cuales gracias a los filtros de SonarQube podemos agrupar distintos tipos. Además podemos aportar también las tags de estos junto a su localización en el código y su gravedad. 
+
+    - **(JavaScript) Unused assignments should be removed**: <p id ="unused-assignments">Existen 12 problemas de este tipo con un tiempo total de esfuerzo de 12 min. Este code smell nos sugiere que debemos eliminar las asignaciones de variables que no se usan en el código. Tener variables asignadas pero no utilizadas genera código innecesario que puede confundir a otros desarrolladores y aumenta la complejidad del código sin aportar valor.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser código no refactorizado, cambios en los requisitos o falta de pruebas y depuración en el código.
+
+        - El code smell se produce ya que se declaran constantes de la forma const [clinic, setClinic] y alguna de las 2 variables asignadas no se utiliza. Para solucionarlos habría que declarar y asignar únicamente la variable utilizada.
+
+        - Un ejemplo lo podemos encontrar en ClinicEditAdmin.js, donde existen constantes que no se utilizan.
+        
+        ![UnusedAssignments](../resources/CodeSmellUnusedAssignments.png)
+
+    - **(JavaScript) Unused local variables and functions should be removed**: <p id="unused-local-variables">Existen 12 problemas de este tipo con un tiempo total de esfuerzo de 1 h. Este tipo de code smell sugiere que debemos eliminar las variables locales y funciones que no se utilizan en el código. Tener variables o funciones no utilizadas aumenta la complejidad y el desorden, haciendo que el código sea más difícil de leer, mantener y depurar.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser una refactorización incompleta, desarrollo rápido sin pruebas o cambios de requisitos.
+
+        - El code smell se produce ya que se declaran constantes de la forma const [clinic, setClinic] y alguna de las 2 variables no se utiliza. Para solucionarlos habría que declarar y asignar únicamente la variable utilizada.
+
+        - Un ejemplo de este problema lo encontramos en OwnerEditAdmin.js, donde hay variables que no son utilizadas.
+        
+        ![UnusedLocalVariables](../resources/CodeSmellUnusedLocalVariables.png)
+
+    - **(JavaScript) If statements should not be the only statement in else blocks**: <p id="statement-else-blocks">Existen 11 problemas de este tipo con un tiempo total de esfuerzo de 55 min. Este code smell nos sugiere que los bloques else no deben contener solo una declaración if. En lugar de anidar una declaración if dentro de un bloque else, debemos reestructurar el código para mejorar su claridad y legibilidad.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la elaboración de un código apresurado sin organización, falta de claridad o un intento de reducir líneas de código. 
+
+        - El code smell se produce ya que un solo if no debe ser el único bloque de código dentro de un else. Para solucionarlo habría que cambiar el else por un else if.
+
+        - Un ejemplo de este tipo de problemas lo encontramos en ConsultationListAdmin.js, donde el bloque if debe tener más declaraciones.
+
+        ![IfStatements](../resources/CodeSmellIfStatements.png)
+        
+    - **(JavaScript) React components should validate prop types**: <p id="react-components">Existen 9 problemas de este tipo con un tiempo total de esfuerzo de 45 min. Este code smell sugiere que los componentes de React deben validar los tipos de sus props para garantizar que los datos recibidos son del tipo esperado. Validar los tipos de las props ayuda a evitar errores difíciles de depurar y mejora la calidad y la robustez del componente.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la falta de experiencia, el desconocimiento de las buenas prácticas con React o descuido en el diseño de componentes.
+
+        - Para solucionarlo, hay que agregar propTypes y definir correctamente el tipo de error.
+
+        - Un ejemplo de este tipo de problemas lo encontramos en el App.js, donde hay el *error* falta en las validaciones.
+
+        ![ValidatePropTypes](../resources/CodeSmellValidatePropTypes.png)
+
+    - **(JavaScript) Deprecated APIs should not be used**: <p id="deprecated-api">Existen 8 problemas de este tipo con un tiempo total de esfuerzo de 2 h. Este code smell nos sugiere que no debemos usar APIs obsoletas (deprecated) en nuestro código, ya que estas funciones o métodos ya no se mantienen o no se recomiendan para su uso. Usar APIs obsoletas puede provocar problemas de compatibilidad a futuro y puede llevar a un código más propenso a errores o menos eficiente.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser un descuido en las actualizaciones de dependencias, falta de conocimiento sobre cambios en las APIs o presión de los desarrolladores por plazos.
+
+        - Para solucionarlo, en lugar de usar defaultProps hay que definir valores predeterminados directamente en la función del componente.
+
+        - Un ejemplo de este tipo deproblemas lo encontramos en formGenerator.js, donde *defaultProps* is deprecated.
+
+        ![DeprecatedAPIs](../resources/CodeSmellDeprecatedAPIs.png)
+
+    - **(JavaScript) JSX list components should not use array indexes as key**: <p id="jsx-list-components">Existen 7 problemas de este tipo con un tiempo total de esfuerzo de 35 min. Este code smell nos sugiere que los componentes de lista en JSX no deben usar índices de los arrays como claves (key). En su lugar, debemos usar identificadores únicos para cada elemento de la lista, como un ID o un valor único asociado a cada ítem. Usar índices como claves puede llevar a problemas de rendimiento y errores visuales, especialmente cuando los elementos de la lista cambian o se reorganizan.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la falta de datos únicos (falta de ids en las listas), desarrollo rápido o no darle tanta importancia a las key.
+
+        - Para solucionarlo, hay que usar un identificador único (id) en lugar del índice o generar uno con una librería como uuid si no tiene id.
+
+        - Un ejemplo lo encontramos en formInput.js, donde se utilizan Arrays en las claves.
+
+        ![JSXList](../resources/CodeSmellJSXList.png)
+
+    - **(JavaScript) Imports from the same module should be merged**: <p id="import-same-module">Existen 6 problemas de este tipo con un tiempo total de esfuerzo de 6 min. Este code smell nos sugiere que las importaciones desde el mismo módulo deberían ser combinadas en una única declaración de importación. En lugar de hacer varias importaciones separadas desde el mismo módulo, es más limpio y eficiente consolidarlas en una sola línea.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser confusión con la sintaxis de importación, falta de atención para ver si había algún módulo que ya estaba importando o desarrollo improvisado.
+
+        - Para solucionarlo, hay que combinar las 2 declaraciones.
+
+        - Un ejemplo de este lo encontramos en src/clinicOwner/clinicsList/index.js, donde hay dos líneas que importan el mismo módulo.
+
+        ![ImportsSameModule](../resources/CodeSmellImportsSameModule.png)
+
+    - **(JavaScript) Sections of code should not be commented out**: <p id="sections-code">Existen 6 problemas de este tipo con un tiempo total de esfuerzo de 30 min. Este code smell nos sugiere que no debemos dejar secciones de código comentadas. Si tenemos código comentado, especialmente bloques grandes o funcionalidades completas, es una señal de que ese código ya no es necesario y debería eliminarse. Mantener código comentado innecesario puede hacer que el código sea más difícil de leer, entender y mantener.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la falta de refactorización, falta de pruebas y depuración o desorganización del flujo de trabajo.
+
+        - Para solucionarlo, hay que borrar el código comentado.
+
+        - Un ejemplo de este tipo lo encontramos en src/classes/admin/pets/petList/index.js, donde encontramos en la parte de los imports código comentado.
+
+        ![CodeCommentedOut](../resources/CodeSmellCodeCommentedOut.png)
+
+    - **(JavaScript) Ternary operator should not be used instead of simpler alternatives**:<p id="ternary-operator-alternatives"> Existen 6 problemas de este tipo con un tiempo total de esfuerzo de 30 min. Este code smell sugiere que no debemos usar el operador ternario (? :) cuando existen alternativas más simples y legibles. Aunque el operador ternario es útil para expresiones cortas, su uso excesivo o en situaciones donde un if-else simple es más claro puede dificultar la lectura del código.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser el uso excesivo de código compacto, algún malentendido sobre cuándo usar el operador ternario o código heredado o copiado.
+
+        - Para solucionarlo, hay que usar el operador ternario solo cuando realmente necesites dos valores distintos y no haya una alternativa más simple (&& o ||).
+
+        - Un ejemplo de este tipo de code smell lo encontramos en ConsultationEditAdmin.js, donde no es necesario el uso de booleanos.
+
+        ![TernaryOperator](../resources/CodeSmellTernaryOperator.png)
+    
+    - **(JavaScript) Ternary operators should not be nested**: <p id="ternary-operator-nested">Existen 6 problemas de este tipo con un tiempo total de esfuerzo de 30 min. Este code smell nos indica que no debemos anidar operadores ternarios (? :) dentro de otros operadores ternarios. Aunque el operador ternario es útil para expresiones cortas, anidarlo puede hacer que el código sea difícil de leer y entender, lo que aumenta la probabilidad de errores.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser el intento de reducir líneas de código, la falta de comprensión del código o estructurar mal las condiciones más complejas.
+
+        - Para solucionarlo, hay que usar if-else en lugar de ternarios anidados o usar un objeto para mapear valores.
+        
+        - Un ejemplo de este tipo lo encontramos en src/auth/register/index.js, donde se puede extraer esa parte del código en vez de contraerlo en esas líneas.
+
+        ![TernaryOperators2](../resources/CodeSmellTernaryOperators2.png)
+
+    - **(JavaScript) Literals should not be used for promise rejection**: <p id="literals-rejection">Existen 4 problemas de este tipo con un tiempo total de esfuerzo de 20 min. Este code smell nos sugiere que no debemos usar valores literales (como strings o números) al rechazar una promesa con Promise.reject() o throw dentro de una promesa. En su lugar, debemos usar instancias de Error o de una subclase de Error, lo que proporciona un stack trace útil y facilita la depuración. 
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la falta de conocimiento del Error en Javascript, el desarrollo rápido y descuidado o código heredado.
+
+        - Para solucionarlo, hay que usar new Error() (o una subclase de Error) al rechazar una promesa.
+        
+        - Un ejemplo de este tipo lo podemos encontrar en src/auth/login/index.js, donde se espera que la respuesta al Promise sea un Error.
+
+        ![LiteralsNotForPromiseRejection](../resources/CodeSmellLiteralsNotForPromiseRejection.png)
+
+    - **(JavaScript) Optional chaining should be preferred**: <p id="optional-chaining">Existen 4 problemas de este tipo con un tiempo total de esfuerzo de 20 min. Este code smell nos sugiere que debemos preferir el uso de optional chaining (?.) en lugar de validaciones manuales al acceder a propiedades anidadas en objetos. El optional chaining ayuda a evitar errores cuando una propiedad en la cadena de acceso es null o undefined, haciendo el código más limpio y seguro.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser el uso excesivo de validaciones manuales o intentar evitar errores de tipo Cannot read property of undefined.
+
+        - Para solucionarlo, hay que usar optional chaining (?.).
+
+        - Un ejemplo de este tipo lo podemos encontrar en src/admin/owners/OwnerEditAdmin.js, donde se podría usa el optional chaining para que fuese más legible y conciso.
+
+        ![OptionalChaining](../resources/CodeSmellOptionalChaining.png)
+
+    - **(JavaScript) Label elements should have a text label and an associated control**: <p id="label-elements">Existen 3 problemas de este tipo con un tiempo total de esfuerzo de 15 min. Este code smell sugiere que todos los elementos label en HTML deben tener un texto visible y estar correctamente asociados a un control de formulario (input, textarea, select, etc.). Esto mejora la accesibilidad, usabilidad y la compatibilidad con tecnologías asistivas como lectores de pantalla.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser la falta de asociación con un control (for / id), etiqueta label vacía o sin texto visible o uso incorrecto de aria-label o aria-labelledby.
+
+        - Para solucionarlo, hay que agregar un texto descriptivo.
+
+        - Un ejemplo de este tipo lo podemos encontrar en src/admin/consultations/ConsultationEditAdmin.js, donde la label debe tener un text.
+
+        ![LabelElements](../resources/CodeSmellLabelElements.png)
+
+    - **(JavaScript) Cognitive Complexity of functions should not be too high**: <p id="cognitive-complexity">Existen 2 problemas de este tipo con un tiempo total de esfuerzo de 23 min. Este code smell nos indica que las funciones no deberían tener una "Cognitive Complexity" demasiado alta, lo que significa que no deben ser demasiado difíciles de entender debido a la cantidad de estructuras de control anidadas, condiciones complejas o múltiples bifurcaciones en el flujo del código. Una alta complejidad cognitiva dificulta la lectura, el mantenimiento y la depuración del código.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Critical, lo que implica que es un problema serio que debe corregirse lo antes posible. Normalmente, se trata de defectos que pueden provocar fallos en la lógica del negocio, errores de ejecución o vulnerabilidades   de seguridad.
+
+        - Las diferentes causas pueden ser que las estructuras tienen demasiado control anidado (if, for, while, etc.), condiciones booleanas demasiado complicadas o funciones demasiado largas.
+
+        - Para solucionarlo, hay que usar funciones auxiliares o un switch en lugar de múltiples if
+
+        - Un ejemplo de este tipo lo podemos encontrar en src/components/formGenerator/formInput.js, donde la función es demasiado compleja con funciones anidadas dentro de ella.
+
+        ![CognitiveComplexity](../resources/CodeSmellCognitiveComplexity.png)
+    
+    - **(JavaScript) JSX list components should have a key property**: <p id="jsx-key-property">Existen 2 problemas de este tipo con un tiempo total de esfuerzo de 10 min. Este code smell nos indica que los elementos de listas en JSX deben tener una propiedad key única cuando se renderizan dinámicamente en React. La clave (key) ayuda a React a identificar qué elementos han cambiado, agregado o eliminado, optimizando la renderización y mejorando el rendimiento.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. Estos problemas afectan la mantenibilidad del código, pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser la falta de conocimiento sobre reconciliación en React, no haber considerado una propiedad única para key o desarrollo rápido.
+
+        - Para solucionarlo, hay que usar una key única.
+        
+        - Un ejemplo de este tipo lo podemos encontrar en src/admin/clinics/ClinicEditAdmin.js, donde falta la propiedad key para el elemento en el iterador.
+        
+        ![JSXListComponents](../resources/CodeSmellJSXListComponents.png)
+
+    - **(JavaScript) Redundant React fragments should be removed**: <p id="redundant-react">Existen 2 problemas de este tipo con un tiempo total de esfuerzo de 10 min. Este code smell nos indica que no debemos usar fragmentos (<React.Fragment> o <>...</>) cuando no son necesarios. Los fragmentos en React se usan para agrupar múltiples elementos sin introducir un nodo extra en el DOM, pero si solo hay un elemento hijo, el fragmento es redundante.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser el uso innecesario de fragmentos por hábito, algún malentendido sobre la función de los fragmentos o código heredado.
+
+        - Para solucionarlo, hay que eliminar fragmentos (<>...</>) innecesarios.
+
+        - Un ejemplo de este tipo lo podemos encontrar en src/AppNavbar.js, donde el fragmento de código es redundante.
+        
+        ![RedundantReact](../resources/CodeSmellRedundantReact.png)
+
+    - **(JavaScript) Unused React typed props should be removed**: <p id="unused-react">Existen 2 problemas de este tipo con un tiempo total de esfuerzo de 10 min. Este code smell indica que no debemos definir typed props en React (con PropTypes o TypeScript) si no las estamos usando en el componente. Mantener props sin utilizar puede confundir a otros desarrolladores, aumentar el ruido en el código y hacer que el mantenimiento sea más difícil.</p>
+    
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas pueden ser refactorización incompleta, props heredadas de componentes antiguos o definiciones de props sin verificar si realmente las necesitamos.
+    
+        - La solución sería eliminar las propiedades no utilizadas de los componentes de React para evitar código redundante y mejorar la claridad.
+    
+        - Un ejemplo de este tipo lo podemos encontrar en src/components/formGenerator/formInput.js, donde se definen los formValues, pero no se utiliza.
+
+        ![UnusedReact](../resources/CodeSmellUnusedReact.png)
+
+    - **(JavaScript) Boolean expressions should not be gratuitous**: <p id="boolean-expressions">Existe un code smell de este tipo con un tiempo total de esfuerzo de 10 min. Este code smell nos indica que no debemos escribir expresiones booleanas innecesarias. A veces, escribimos comparaciones redundantes o verificaciones explícitas que pueden simplificarse, lo que hace que el código sea más claro y conciso.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar errores en determinadas condiciones.
+    
+        - Las diferentes causas pueden ser la falta de conocimiento sobre valores booleanos en JavaScript o código heredado.
+
+        - La solución para este code smell sería eliminar comparaciones redundantes como === true o === false al evaluar directamente las variables booleanas y simplificar las condiciones.
+    
+        - Este tipo de code smell lo encontramos en src/owner/pets/petEdit/index.js, donde hay un atributo que siempre va a dar true.
+
+    ![BooleanExpressions](../resources/CodeSmellBooleanExpressions.png)
+
+    - **(JavaScript) Spacing between inline elements should be explicit**: <p id="spacing-between">Existe un code smell de este tipo con un tiempo total de esfuerzo de 5 min. Este code smell sugiere que debemos añadir espacios explícitos entre los elementos en línea (inline elements), como los elementos de texto o los elementos HTML en línea (span, a, etc.), para evitar que se mezclen visualmente. En algunos casos, no agregar espacios puede provocar un comportamiento inesperado o un diseño visual incorrecto, especialmente cuando se renderizan en el navegador.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar errores en determinadas condiciones.
+    
+        - Las diferentes causas pueden ser falta de atención al diseño o la apariencia, uso incorrecto de las etiquetas sin considerar su comportamiento en línea o descuido al escribir código rápido.
+        
+        - La solución sería agregar un espacio explícito entre los elementos en línea en HTML para mejorar la legibilidad y presentación, o usa CSS para controlar el espaciado.
+        
+        - Este tipo de code smell lo encontramos en src/AppNavbar.js, donde hay un espaciado que no se sabe por qué esta.
+
+    ![Spacing](../resources/CodeSmellSpacing.png)
+
+    - **(JavaScript) Unnecessary imports should be removed**: <p id="unnecessary-imports">Existe un code smell de este tipo con un tiempo total de esfuerzo de 1 min. Este code smell nos indica que debemos eliminar los imports innecesarios. Si hemos importado módulos, funciones, o variables que no se utilizan en el código, estos deben ser eliminados para mantener el código limpio y optimizado. Dejar imports innecesarios puede aumentar el tamaño del bundle, hacer que el código sea más difícil de mantener y ralentizar el proceso de compilación.</p>
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas pueden ser refactorización incompleta, uso de herramientas de desarrollo o IDEs con autocompletado o código heredado.
+
+        - La solución para este tipo de code smell es quitar los imports innecesarios.
+    
+        - Este tipo de code smell lo encontramos en src/owner/pets/petEdit/index.js, donde existe un import del useFetchState innecesario.
+
+    ![UnnecessaryImports](../resources/CodeSmellUnnecessaryImports.png)
+  
+### <p id="sprint2-code-smell">Sprint 2</p>
+
+Al igual que en el Sprint 1 utilizaremos la herramienta SonarQube para analizar los Code Smell. Diferenciaremos entre backend y frontend.
+
+- **Backend**: En el proyecto de backend encontramos 139 code smell, los cuales gracias a los filtros de SonarQube podemos agrupar distintos tipos, en este análisis solo pondremos aquellos tipos que no hayan sido descritos.
+
+    - **(Java) Methods with Spring proxy should not be called via "this"**: Existen 42 code smell de este tipo con un tiempo total de esfuerzo de 3h 30 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#methods-with-spring)
+
+    - **(Java) Sections of code should not be commented out**: Existen 31 code smell de este tipo con un tiempo total de esfuerzo de 2h 35 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#sections-of-code)
+
+    - **(Java) Package names should comply with a naming convention**: Existen 10 code smell de este tipo con un tiempo total de esfuerzo de 1h 40 min. Este code smell nos indica que debemos seguir una convención de nombres para los paquetes. Si los nombres no son consistentes, puede dificultar la organización, el mantenimiento y la colaboración en el proyecto. Además, puede causar confusión al tratar de encontrar módulos o funcionalidades dentro del código.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+    
+        - Las diferentes causas pueden ser falta de estándares claros dentro del equipo, desconocimiento de las convenciones establecidas o migraciones o cambios incompletos.
+
+        - La solución para este tipo de code smell es adoptar una convención de nombres clara para todos los paquetes
+    
+        - Este tipo de code smell lo encontramos en src/main/java/org/springframework/samples/petclinic/adoptionApplication/AdoptionApplication.java, donde el nombre del paquete debe ser cambiado para que siga la expresión regular '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.
+
+    ![PackageNames](../resources/CodeSmellPackageNames.png)
+
+    - **(Java) Field dependency injection should be avoided**: Existen 9 code smell de este tipo con un tiempo total de esfuerzo de 45 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#field-dependency-injection)
+
+    - **(Java) JUnit5 test classes and methods should have default package visibility**: Existen 7 code smell de este tipo con un tiempo total de esfuerzo de 14 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#junit5)
+
+    - **(Java) Chained AssertJ assertions should be simplified to the corresponding dedicated assertion**: Existen 4 problemas de este tipo con un tiempo de esfuerzo total de 20 min. Este ha sido previamente explicado en el Sprint 1. [aqui](#chained)
+
+    - **(Java) Field names should comply with a naming convention**: Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#field-names-should-comply)
+
+    - **(Java) Generic exceptions should never be thrown**: Existen 3 problemas de este tipo con un tiempo de esfuerzo total de 1 h. Este nos indica que debemos evitar lanzar excepciones genéricas como Exception o Throwable. Al hacerlo, perdemos la especificidad del error, lo que dificulta la identificación y manejo adecuado de los problemas. Las excepciones genéricas pueden ocultar detalles importantes sobre el tipo de error y hacer que el código sea más difícil de depurar y mantener.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar problemas de legibilidad y a la hora de entender el código.
+
+        - Las diferentes causas pueden ser Falta de conocimiento sobre excepciones específicas, deseo de manejar todos los errores de manera general o código mal diseñado.
+
+        - La solución para este tipo puede ser lanzar excepciones específicas, como IOException, NullPointerException, o crear excepciones personalizadas.
+
+        - Este tipo de code smell lo encontramos en src/main/java/org/springframework/samples/petclinic/adoptionApplication/AdoptionApplicationRestController.java, donde se lanza una excepción inadecuada, tendría que ser una genérica.
+
+    ![GenericExceptions](../resources/CodeSmellGenericExceptions.png)
+
+    - **(Java) Parentheses should be removed from a single lambda parameter when its type is inferred**: Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este ha sido previamente explicado en el Sprint 1. [aqui](#parentheses)
+
+    - **(Java) Public constants and fields initialized at declaration should be "static final" rather than merely "final"**: Existen 3 problemas como este con un tiempo total de esfuerzo de 6 min. Este ha sido previamente explicado en el Sprint 1. [aqui](#public-constants)
+
+    - **(Java) Standard outputs should not be used directly to log anything**: Existen 3 problemas como este en nuestro código con un tiempo total de esfuerzo de 30 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#standard-outputs)
+
+    - **(Java) "Stream.toList()" method should be used instead of "collectors" when unmodifiable list needed**: Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 10 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#stream)
+
+    - **(Java) Exception classes should have final fields**: Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 30 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#exception-classes)
+
+    - **(Java) Exceptions in "throws" clauses should not be superfluous**: Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 10 min. Este ha sido previamente expliado en el Sprint 1.[aqui](#exception-in)
+
+    - **(Java) Methods should not have identical implementations**: Existen 2 problemas como este en nuestro código con un tiempo total de esfuerzo de 30 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#methods-should-not)
+
+    - **(Java) Factory method injection should be used in "@Configuration" classes**: Existe este problema en la clase de SecurityConfiguration.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#factory)
+
+    - **(Java) Generic wildcard types should not be used in return types**: Existe este problema en la clase de BookingController.java, esta se puede resolver con un tiempo total de esfuerzo de 20 min. Este nos indica que no debemos usar tipos comodín genéricos (wildcards) en los tipos de retorno de los métodos. El uso de comodines como <?> puede hacer que el código sea más flexible, pero a costa de la claridad y la seguridad del tipo. Al retornar un tipo genérico sin especificar claramente su parámetro de tipo, perdemos la capacidad de realizar operaciones específicas sobre ese tipo de manera segura, lo que puede llevar a errores en tiempo de ejecución.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Critical, lo que implica que es un problema serio que debe corregirse lo antes posible. Normalmente, se trata de defectos que pueden provocar fallos en la lógica del negocio, errores de ejecución o vulnerabilidades de seguridad.
+
+        - Las diferentes causas pueden ser intento de escribir código más flexible, manejo incorrecto de tipos genéricos o código heredado.
+
+        - La solución para este tipo puede ser especificar el tipo exacto en los métodos de retorno en lugar de usar <?>.
+
+        - Este tipo de code smell lo encontramos en BookingController.java, donde se debe eliminar el generic wildCard type.
+
+    ![GenericWildCard](../resources/CodeSmellGenericWildCard.png)
+
+    - **(Java) Lambdas should be replaced with method references**: Este problema está en la clase de SecurityConfiguration.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este ha sido previamente explicado en el Sprint 1.[aqui](#lambdas)
+
+    - **(Java) Local variable and method parameter names should comply with a naming convention**: Este problema está en la clase de BookingService.java, esta se puede resolver con un tiempo total de esfuerzo de 2 min. Este nos indica que los nombres de las variables locales y los parámetros de los métodos deben seguir una convención de nomenclatura coherente. Usar nombres consistentes y significativos mejora la legibilidad del código, facilita su mantenimiento y permite a otros desarrolladores comprender más fácilmente el propósito de cada variable o parámetro.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser falta de convenciones en el equipo o proyecto, nombres poco descriptivos o inconsistencia al usar diferentes estilos de nomenclatura.
+
+        - La solución podría ser establecer y seguir una convención clara de nombres o usar nombres descriptivos.
+
+        - Este tipo de code smell está en el BookingService, donde hay que renombrar la variable siguiendo la expresión regular '^[a-z][a-zA-Z0-9]*$'.
+
+    ![LocalVariableRename](../resources/CodeSmellLocalVariableRename.png)
+
+    - **(Java) Local variables should not shadow class fields**: Este problema está en la clase de UserControllerTests.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este nos indica que las variables locales no deben tener el mismo nombre que los campos de la clase. Cuando una variable local sombrea (oculta) un campo de clase, puede generar confusión, ya que el comportamiento del código se vuelve ambiguo, y puede ser difícil de depurar o entender cuál es el valor real de la variable en un determinado contexto.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar problemas de legibilidad y a la hora de entender el código.
+
+        - Las diferentes causas pueden ser los nombres de variables poco descriptivos, falta de atención a la visibilidad de los campos o código heredado.
+
+        - La solución podría ser utilizar nombres únicos y descriptivos, usar convenciones claras o refactorizar.
+
+        - Este tipo de code smell lo encontramos en el UserControllerTests.java, donde se tiene que renombrar el auth para poner el campo que en verdad se quiere declarar.
+
+    ![LocalVariableNotShadow](../resources/CodeSmellLocalVariableNotShadow.png)
+
+    - **(Java) Multiple variables should not be declared on the same line**: Este problema está en la clase de UpperPlanFeatureException.java, esta se puede resolver con un tiempo total de esfuerzo de 2 min. Este ha sido previamente definido en el Sprint 1.[aqui](#multiple-variables)
+
+    - **(Java) Optional REST parameters should have an object type**: Este problema está en la clase de ClinicOwnerRestController.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este ha sido previamente definido en el Sprint 1.[aqui](#optional)
+
+    - **(Java) Raw types should not be used**: Este problema está en la clase de AuthController.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este ha sido previamente definido en el Sprint 1.[aqui](#raw)
+
+    - **(Java) Redundant casts should not be used**: Este problema está en la clase ConsultationController.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este nos indica que no debemos utilizar conversiones de tipo redundantes (casts innecesarios). Un cast redundante ocurre cuando intentamos convertir un tipo a otro que ya es compatible o cuando no es necesario. Estos casts no solo hacen que el código sea más difícil de leer, sino que también pueden generar confusión y no aportan valor alguno en términos de funcionalidad.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser inexperiencia o desconocimiento sobre los tipos de datos, falta de atención al código existente o refactorización incompleta.
+
+        - La solución podría ser eliminar los casts innecesarios o aprovechar la inferencia de tipos en Java para evitar los casts, especialmente con el uso de generics.
+
+        - Este code smell lo encontramos en el ConsultationController.java, donde tenemos que eliminar el cast de List innecesario.
+
+    ![RedundantCasts](../resources/CodeSmellRedundantCasts.png)
+
+    - **(Java) String literals should not be duplicated**: Este problema está en la clase SecurityConfiguration.java, esta se resolvería con un tiempo total de esfuerzo de 4 min. Este nos indica que no debemos duplicar literales de cadenas (String literals) en nuestro código. Al tener el mismo literal de cadena repetido en varias partes, estamos creando redundancia que puede hacer que el código sea más difícil de mantener. Si necesitamos cambiar el valor de esa cadena, tendríamos que hacerlo en cada lugar donde aparece, lo que aumenta las posibilidades de cometer errores.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Critical, lo que implica que es un problema serio que debe corregirse lo antes posible. Normalmente, se trata de defectos que pueden provocar fallos en la lógica del negocio, errores de ejecución o vulnerabilidades de seguridad.
+
+        - Las diferentes causas pueden ser falta de refactorización, código heredado o desconocimiento de la posibilidad de usar constantes.
+
+        - La solución podría ser crear constantes para los literales de cadena que se repiten, refactorizar o utilizar enumeraciones.
+
+        - Este code smell está en el SecurityConfiguration.java, donde se debería usar una constante predefinida con el mismo valor.
+
+    ![StringLiterals](../resources/CodeSmellStringLiterals.png)
+
+    - **(Java) Unused local variables should be removed**: Este problema está en la clase de DevelopersController.java, esta se resolvería con un tiempo total de esfuerzo de 5 min. Este nos indica que debemos eliminar las variables locales que no se están utilizando en el código. Mantener variables que no tienen ningún propósito o que nunca se usan solo incrementa la complejidad del código y lo hace más difícil de leer y mantener, además de ocupar memoria innecesaria.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Minor, lo que implica que no representa un riesgo inmediato pero sí una oportunidad de mejora. Son problemas de estilo, convenciones o pequeñas ineficiencias.
+
+        - Las diferentes causas pueden ser variables declaradas pero no utilizadas, refactorizaciones incompletas o desarrollo apresurado.
+
+        - La solución podría ser eliminar las variables no utilizadas, revisar y limpiar el código o usar herramientas de análisis estático.
+
+        - Este code smell está en DevelopersController.java, donde hay que quitar una variable inusual.
+
+    ![UnusedLocalVariable](../resources/CodeSmellUnusedLocalVariable.png)
+
+    - **(Java) Utility classes should not have public constructors**: Este problema está en la clase de EntityUtils.java, esta se puede resolver con un tiempo total de esfuerzo de 5 min. Este ha sido previamente definido en el Sprint 1. [aquí](#utility-classes)
+
+    - **(XML) Sections of code should not be commented out**: Este problema está en el pom.xml, se puede resolver en un tiempo total de esfuerzo de 5 min. Este ha sido previamente definido.[aqui](#sections-of-code)
+
+
+- **Frontend**: En el proyecto de frontend encontramos 137 code smell, los cuales gracias a los filtros de SonarQube podemos agrupar distintos tipos. Además podemos aportar también las tags de estos junto a su localización en el código y su gravedad. 
+
+    - **(JavaScript) Unused assignments should be removed**: Este code smell ya fue explicado [aquí](#unused-assignments)
+
+    - **(JavaScript) Unused local variables and functions should be removed**: Este code smell ya fue explicado [aquí](#unused-local-variables)
+
+    - **(JavaScript) If statements should not be the only statement in else blocks**: Este code smell ya fue explicado [aquí](#statement-else-blocks)
+        
+    - **(JavaScript) React components should validate prop types**: Este code smell ya fue explicado [aquí](#react-components)
+
+    - **(JavaScript) Deprecated APIs should not be used**: Este code smell ya fue explicado [aquí](#deprecated-api)
+
+    - **(JavaScript) Ternary operators should not be nested**: Este code smell ya fue explicado [aquí](#ternary-operator-nested)
+
+    - **(JavaScript) JSX list components should not use array indexes as key**: Este code smell ya fue explicado [aquí](#jsx-list-components)
+
+    - **(JavaScript) Imports from the same module should be merged**: Este code smell ya fue explicado [aquí](#import-same-module)
+
+    - **(JavaScript) Sections of code should not be commented out**: Este code smell ya fue explicado [aquí](#sections-code)
+
+    - **(JavaScript) Ternary operator should not be used instead of simpler alternatives**: Este code smell ya fue explicado [aquí](#ternary-operator-alternatives)
+
+    - **(JavaScript) Unnecessary imports should be removed**: Este code smell ya fue explicado [aquí](#unnecessary-imports)
+
+    - **(JavaScript) Label elements should have a text label and an associated control**: Este code smell ya fue explicado [aquí](#label-elements)
+
+    - **(JavaScript) Literals should not be used for promise rejection**: Este code smell ya fue explicado [aquí](#literals-rejection)
+
+    - **(JavaScript) Optional chaining should be preferred**: Este code smell ya fue explicado [aquí](#optional-chaining)
+
+    - **(JavaScript) Cognitive Complexity of functions should not be too high**: Este code smell ya fue explicado [aquí](#cognitive-complexity)
+    
+    - **(JavaScript) JSX list components should have a key property**: Este code smell ya fue explicado [aquí](#jsx-key-property)
+
+    - **(JavaScript) Redundant React fragments should be removed**: Este code smell ya fue explicado [aquí](#redundant-react)
+
+    - **(JavaScript) Unused React typed props should be removed**: Este code smell ya fue explicado [aquí](#unused-react)
+
+    - **(CSS) Sections of code should not be commented out**: Existe un code smell de este tipo con un tiempo total de esfuerzo de 5 min. Este code smell nos indica que no debemos dejar secciones de código comentadas en nuestros archivos CSS. A veces, mantenemos reglas comentadas que ya no se usan, lo que puede generar confusión y desorden en el código.
+
+        - Este tipo de code smell tiene una gravedad según SonarQube de tipo Major, lo que implica que es de alta prioridad. En este caso, estos problemas afectan la mantenibilidad del código y pueden causar errores en determinadas condiciones.
+
+        - Las diferentes causas pueden ser código obsoleto, refactorización incompleta o mantenimiento deficiente
+
+        - La solución para este code smell sería eliminar el código innecesario.
+
+        - Este tipo de code smell lo encontramos en src/global.css, donde hay una clase comentada.
+
+        ![CSSComentedCode](../resources/CodeSmellCSSComentedCode.png)
+
+    - **(JavaScript) Boolean expressions should not be gratuitous**: Este code smell ya fue explicado [aquí](#boolean-expressions)
+
+    - **(JavaScript) Spacing between inline elements should be explicit**: Este code smell ya fue explicado [aquí](#spacing-between)
+
+## <p id="analisis-bugs-potenciales-1">Análisis de los bugs potenciales del S1</p>
+
+[Link a la parte frontend](#frontend)
+
+### <p id="analisis-bugs-potenciales-1-backend">Backend</p>
+
+![alt text](../resources/bugsOverviewCaptura.png)
+
+Si nos ubicamos en la sección de "Reliability" de SonarQube, vemos que ha encontrado 4 bugs en el código realizado en el S1. Habiendo 3 bugs únicos (1 se repite 2 veces en el código).
+
+![alt text](../resources/bugsCaptura.png)
+
+Esto ha resultado en una nota "C" con un tiempo estimado de arreglo de unos 40 min.
+
+Los bugs encontrados son los siguientes.
+
+[1. Call "Optional#isPresent()" or "!Optional#isEmpty()" before accessing the value](#1-call-optionalispresent-or-optionalisempty-before-accessing-the-value)
+
+[2. Remove this conditional structure or edit its code blocks so that they're not all the same](#2-remove-this-conditional-structure-or-edit-its-code-blocks-so-that-theyre-not-all-the-same)
+
+[3. Bind path variable "petId" to a method parameter](#3-bind-path-variable-petid-to-a-method-parameter)
+
+#### 1. Call "Optional#isPresent()" or "!Optional#isEmpty()" before accessing the value.
+
+Este bug se encuentra en 2 clases distintas, está en "ClinicOwnerService" y "PetHotelRoomService".
+
+![alt text](../resources/optionalBugClinicCaptura.png)
+
+![alt text](../resources/optionalBugHotelCaptura.png)
+
+La razón por la que se considera un bug es que los métodos a los que se llaman devuelven un "Optional", que como su nombre indica puede contener un valor o no.
+
+Si el "Optional" no tuviese un valor el código fallaría con un NoSuchElementException.
+
+Para prevenir esto, nos tendríamos que asegurar de que el "Optional" contiene un valor antes de intentar acceder a él.
+
+#### 2. Remove this conditional structure or edit its code blocks so that they're not all the same.
+
+Este bug que ha encontrado SonarQube en la clase "ClinicService" se debe a un "if-else" donde ninguna de las partes realiza código.
+
+![alt text](../resources/ifBugCaptura.png)
+
+SonarQube ha visto esto como que tanto el if como el "else" hacen lo mismo haciendo redundante el "if-else".
+
+Pero mirando el código es fácil entender porque ha ocurrido esto.
+
+El código que se debe de ejecutar en este "if-else" está comentado.
+
+Para arreglar este "bug" simplemente se debe de descomentar el código. Ya que se puede ver que el código que se ejecutaría en el "if" es distinto del "else".
+
+Este bug también se encuentra en el frontend, [bug en el frontend](#3-remove-this-conditional-structure-or-edit-its-code-blocks-so-they-are-not-the-same).
+
+#### 3. Bind path variable "petId" to a method parameter.
+
+Este se encuentra en la clase "VisitRestController".
+
+![alt text](../resources/pathBugCaptura.png)
+
+El motivo de que sea un problema proviene de como trata Spring a este código.
+
+Si se realiza un "@GetMapping" sin tener "@PathVariable" Spring ignorará las variables.
+
+En nuestro caso:
+
+@GetMapping("/api/v1/pets/{petId}/visits/{visitId}")
+public ResponseEntity<Visit> findById(@PathVariable("visitId") int visitId)
+
+Spring ignorará "petId".
+
+En el código se está usando "visit.getPet()" para acceder al "Pet", deberíamos de crear una variable usando "@PathVariable" para "petId" igual que se está haciendo en el resto de métodos, para acceder a información sobre el "Pet".
+
+De esa manera mantedríamos la consistencia en el código, se haría más fácil de entenderlo y solucionarímos el bug en SonarQube.
+
+### <p id="analisis-bugs-potenciales-1-frontend">Frontend</p>
+
+![alt text](../resources/bugsOverviewFrontCaptura.png)
+
+Para el frontend, encontramos también una nota "C" pero existen 24 bugs.
+
+De estos la mayoría se repiten en distintas partes del código, el número de bugs únicos es 4.
+
+Estos son:
+
+[1. Unexpected duplicate](#1-unexpected-duplicate)
+
+[2. Unexpected missing generic font family](#2-unexpected-missing-generic-font-family)
+
+[3. Remove this conditional structure or edit its code blocks so they are not the same](#3-remove-this-conditional-structure-or-edit-its-code-blocks-so-they-are-not-the-same)
+
+[4. Use callback in setState when referencing the previous state](#4-use-callback-in-setstate-when-referencing-the-previous-state)
+
+#### 1. Unexpected duplicate.
+
+Este bug se encuentra 2 veces en el código una siendo "Unexpected duplicate position"
+
+![alt text](../resources/dupPBugFrontCaptura.png)
+
+Y "Unexpected duplicate height".
+
+![alt text](../resources/dupHBugFrontCaptura.png)
+
+Este bug ha ocurrido porque hemos escrito ese parámetro varias veces, lo que ocurrirá es que se tomará el último y se ignorará el primero.
+
+Arreglar este bug es muy sencillo ya que solo habría que eliminar la primera instancia de "position" y "height" en los css correspondientes.
+
+#### 2. Unexpected missing generic font family.
+
+![alt text](../resources/fontWhereBugFrontCaptura.png)
+
+El problema ocurre porque no se ha seleccionado una font que sea genérica por lo que si un usuario no tuviese la font en su browser, el browser elegiría su predeterminado.
+
+Sería más adecuado que tomásemos la decisión del predeterminado nosotros añadiendo una font genérica que sabemos que se podrá utilizar.
+
+#### 3. Remove this conditional structure or edit its code blocks so they are not the same.
+
+![alt text](../resources/ifBugFrontCaptura.png)
+
+Este bug ya apareció en el backend, [bug en el backend](#2-remove-this-conditional-structure-or-edit-its-code-blocks-so-that-theyre-not-all-the-same), pero en distinta forma.
+
+Esta vez sí realizan el "if" y el "else" la misma operación.
+
+La solución sería eliminar el "if-else".
+
+#### 4. Use callback in setState when referencing the previous state.
+
+![alt text](../resources/callbackBugFrontCaptura.png)
+
+Este ha sido el bug que más se repite en el código.
+
+La razón de que esto puede ser problemático es por como actualiza "React" el "state", ya que es asíncrono.
+
+Las actualizaciones se hacen en grupos donde se van acumulando varias por motivos de rendimiento.
+
+Para solucionarlo deberíamos llamar a "setState" usando manera funcional, invocando el "state" actual para asegurarnos que no hay posibilidad de errores.
+
+## Análisis de los bugs potenciales del S2
+
+Para el frontend del S2 no ha habido cambios en los bugs existentes.
+
+[Análisis frontend S1](#frontend)
+
+### Backend S2
+
+![alt text](../resources/bugsOverviewS2Captura.png)
+
+Para el backend encontramos que el bug: 
+
+[2. Remove this conditional structure or edit its code blocks so that they're not all the same](#2-remove-this-conditional-structure-or-edit-its-code-blocks-so-that-theyre-not-all-the-same)
+
+Se ha solucionado.
+
+También vemos una nueva instancia de un bug ya existente:
+
+[1. Call "Optional#isPresent()" or "!Optional#isEmpty()" before accessing the value](#1-call-optionalispresent-or-optionalisempty-before-accessing-the-value)
+
+![alt text](../resources/optionalBugBookingCaptura.png)
+
+Ahora aparece también en la clase "BookingService".
+
+Por último existen 3 instancias del siguiente error:
+
+#### Strings and Boxed types should be compared using "equals()".
+
+![alt text](../resources/equalsBug.png)
+
+Esto es un problema porque si no se usa "equals()" para comparar estos tipos, lo que se compara son lo que se encuentra en las direcciones de memoria que podría provocar fallo si el dato en esa dirección cambiase por algún motivo.
+
+La solución al bug está en el mismo título, deberíamos de usar "equals()" para estas comparaciones.
+
+
+## Conclusiones S1
+
+El análisis realizado revela un estado mixto en la calidad del código tanto para el backend como para el frontend del proyecto. A continuación, se presentan las principales conclusiones derivadas de las métricas y los problemas identificados:
+
+1. **Seguridad (Vulnerabilities y Security Hotspots):**  
+   El backend muestra una fortaleza notable en seguridad, con cero vulnerabilidades detectadas y una calificación A, lo que indica un código robusto frente a posibles ataques. Sin embargo, presenta dos Security Hotspots sin revisar, lo que degrada su calificación a E en este aspecto. Por otro lado, el frontend tiene un desempeño deficiente, con dos vulnerabilidades críticas de tipo Blocker que resultan en una calificación E, además de un Security Hotspot sin revisar. Esto sugiere una necesidad urgente de revisar y corregir las vulnerabilidades en el frontend, así como de priorizar la revisión de los Hotspots en ambos componentes para garantizar una mayor seguridad.
+
+2. **Fiabilidad (Bugs):**  
+   La fiabilidad del backend se ve comprometida por la presencia de 4 bugs de criticidad Major, lo que le otorga una calificación C y un tiempo estimado de corrección de 40 minutos. En el frontend, la situación es más preocupante, con 24 bugs de tipo Major, reflejando una calidad significativamente menor. Los bugs identificados, como el manejo inadecuado de Optionals en el backend o estructuras condicionales redundantes, son corregibles con un esfuerzo razonable, pero el volumen en el frontend indica una necesidad de mayor atención en las pruebas y la refactorización.
+
+3. **Mantenibilidad (Code Smells y Duplications):**  
+   Tanto el backend como el frontend obtienen una calificación A en mantenibilidad, a pesar de registrar 125 y 106 Code Smells, respectivamente. Esto sugiere que, aunque existen prácticas mejorables, no representan un riesgo inmediato para el mantenimiento del código. En el backend, destacan problemas como el uso incorrecto de proxies de Spring y la presencia de código comentado, mientras que en el frontend se observan issues como el uso de APIs obsoletas y estructuras condicionales complejas. Respecto a las duplicaciones, el backend muestra un bajo 0,4% (calidad alta), mientras que el frontend tiene un preocupante 16,1%, lo que incrementa la deuda técnica y requiere una refactorización para reducir redundancias.
+
+4. **Cobertura de Pruebas (Coverage):**  
+   El backend presenta una cobertura del 78%, un valor aceptable pero mejorable para acercarse al ideal del 90%. En contraste, el frontend tiene una cobertura nula (0%), lo que constituye un indicador crítico de falta de pruebas automatizadas. Esta ausencia de tests en el frontend no solo afecta la fiabilidad, sino que también dificulta la detección temprana de errores, siendo una prioridad para el próximo sprint.
+
+5. **Esfuerzo de Mejora:**  
+   Los Code Smells del backend suman un esfuerzo estimado de corrección de aproximadamente 9 horas, con problemas como inyecciones de dependencias en campos y código comentado siendo los más demandantes. En el frontend, el esfuerzo total asciende a unas 10 horas, con énfasis en la eliminación de APIs obsoletas y la simplificación de estructuras condicionales. Aunque el tiempo estimado para corregir bugs es menor (40 minutos en backend y no especificado en frontend), la combinación de bugs, vulnerabilidades y falta de cobertura en el frontend sugiere que este componente requerirá un esfuerzo adicional significativo.
+
+En resumen, mientras el backend muestra un estado aceptable con áreas claras de mejora, el frontend presenta deficiencias críticas en seguridad, fiabilidad y cobertura que abordaremos con urgencia en el próximo sprint. Estas acciones concretas no solo mejorarán las métricas de SonarQube, sino que también fortalecerán la robustez y mantenibilidad del proyecto en su conjunto, sentando bases sólidas para las siguientes iteraciones.
+
+## Conclusiones S2
+
+El análisis del Sprint 2  destacan avances y desafíos tras las implementaciones realizadas. A continuación, se detallan las principales conclusiones basadas en las métricas y los problemas identificados:
+
+1. **Seguridad (Vulnerabilities y Security Hotspots):**  
+   En el Sprint 2, el backend mantiene su fortaleza en seguridad con cero vulnerabilidades detectadas, lo que refleja una estabilidad en este aspecto respecto al Sprint anterior. Sin embargo, persisten dos Security Hotspots sin revisar, lo que mantiene una calificación E en este ámbito, indicando que aún hay riesgos potenciales que requieren atención manual. En el frontend, se reportan dos vulnerabilidades críticas de tipo Blocker sin cambios respecto al Sprint 1, manteniendo una calificación E y un Security Hotspot sin revisar. La ausencia de nuevas vulnerabilidades es positiva, considerando las numerosas funcionalidades añadidas, pero la falta de revisión de los Hotspots en ambos componentes sigue siendo una debilidad crítica.
+
+2. **Fiabilidad (Bugs):**  
+   La fiabilidad del backend ha empeorado ligeramente en el Sprint 2, pasando de 4 a 7 bugs de criticidad Major, lo que sugiere un impacto negativo del código añadido para las funcionalidades de Adoption y Booking. Este incremento de 3 bugs adicionales refleja la necesidad de mayor rigor en las pruebas para estas nuevas implementaciones. En contraste, el frontend no ha experimentado un aumento en sus 24 bugs de tipo Major, lo que indica que el código añadido en este sprint no introdujo nuevos defectos, aunque persiste una calidad significativamente baja que requiere atención urgente. Los bugs en el backend, como el manejo inadecuado de Optionals y comparaciones incorrectas de Strings, son corregibles, pero su presencia subraya la importancia de mejorar las prácticas de desarrollo.
+
+3. **Mantenibilidad (Code Smells y Duplications):**  
+   La mantenibilidad sigue siendo aceptable en ambos componentes, con una calificación A, a pesar de un incremento en los Code Smells: el backend pasa de 125 a 139 y el frontend de 106 a 137. Este aumento, más notable en el frontend (+31), está vinculado principalmente a las nuevas funcionalidades de Adoption y Booking, introduciendo problemas como paquetes con nombres no convencionales en el backend y estructuras complejas en el frontend. Respecto a las duplicaciones, el backend mantiene un bajo 0,4%, reflejando una alta calidad en este aspecto, mientras que el frontend logra una leve mejora, reduciendo su porcentaje de 16,1% (sobre 13,000 líneas) a 15,4% (sobre 14,000 líneas), gracias a la adición de 1,000 líneas sin duplicación significativa. Aunque la mantenibilidad no está en riesgo inmediato, el crecimiento de Code Smells y la persistente duplicación en el frontend incrementan la deuda técnica.
+
+4. **Cobertura de Pruebas (Coverage):**  
+   La cobertura de pruebas en el backend ha disminuido respecto al Sprint anterior debido a la gran cantidad de código nuevo añadido (principalmente en Adoption y Booking), con tests implementados solo para Booking como parte del backlog. Esto ha reducido el porcentaje de cobertura por debajo del 78% inicial, alejándose aún más del ideal del 90%. En el frontend, la cobertura permanece en 0%, consolidando esta métrica como un punto crítico, ya que no se han implementado tests adicionales en este sprint. La falta de pruebas automatizadas en el frontend y la reducción en el backend evidencian una necesidad urgente de priorizar la creación y ejecución de tests para garantizar la fiabilidad del sistema.
+
+5. **Esfuerzo de Mejora:**  
+   En el backend, los 139 Code Smells representan un esfuerzo estimado de corrección de aproximadamente 10 horas y 37 minutos, con problemas como el uso incorrecto de proxies de Spring (3h 30min) y código comentado (2h 35min) siendo los más demandantes. Los 7 bugs adicionales requieren un tiempo no especificado en el análisis, pero basado en el Sprint 1, se estima en torno a 1 hora. En el frontend, los 137 Code Smells suman unas 10 horas y 54 minutos de esfuerzo, destacando la eliminación de APIs obsoletas (2h) y estructuras condicionales anidadas (55min). La estabilidad en los bugs del frontend no añade tiempo extra en este aspecto, pero la combinación de Code Smells y falta de cobertura sugiere un esfuerzo significativo para mejorar su calidad general.
+
+6. **Acciones a Tomar:**  
+   - **Backend:**  
+     - Revisaremos y resolveremos los dos Security Hotspots pendientes en la próxima iteración, dedicando 1 hora para mejorar la calificación de seguridad y mitigar riesgos potenciales.  
+     - Corregiremos los 7 bugs identificados en un plazo estimado de 1 hora, priorizando el uso de "equals()" para comparaciones de Strings y la validación de Optionals antes de acceder a sus valores.  
+     - Incrementaremos la cobertura de pruebas al menos al 80%, implementando tests unitarios para las funcionalidades de Adoption en un esfuerzo de 3 horas.  
+     - Abordaremos los Code Smells más críticos, como los 42 casos de proxies de Spring mal utilizados, asignando un bloque de 4 horas en el próximo sprint para refactorizarlos.  
+
+   - **Frontend:**  
+     - Iniciaremos la implementación de pruebas automatizadas, apuntando a un 30% de cobertura en el próximo sprint, con un equipo dedicado trabajando 5 horas en tests para las nuevas funcionalidades.  
+     - Corregiremos las dos vulnerabilidades Blocker y revisaremos el Security Hotspot pendiente en un plazo de 2 días (4 horas), restaurando la seguridad del componente.  
+     - Reduciremos la duplicación del 15,4% a menos del 12%, refactorizando 500 líneas clave en 3 horas para disminuir la deuda técnica.  
+     - Modernizaremos las 8 APIs obsoletas y simplificaremos estructuras condicionales anidadas, destinando 3 horas para abordar los Code Smells más graves.  
+
+   - **Ambos:**  
+     - Estableceremos revisiones manuales obligatorias para todos los Security Hotspots en cada sprint, asignando 30 minutos por componente para evitar acumulaciones.  
+     - Eliminaremos el código comentado innecesario (31 en backend, 6 en frontend, 1 en CSS) en una sesión de limpieza de 2 horas totales.  
+     - Adoptaremos estándares de nomenclatura consistentes (camelCase para variables, nombres de paquetes en minúsculas) y revisaremos su cumplimiento en 1 hora por componente.  
+
+En resumen, el Sprint 2 refleja estabilidad en seguridad y duplicaciones, pero un deterioro en la fiabilidad del backend y una persistente debilidad en el frontend, particularmente en cobertura y bugs. Estas acciones concretas priorizarán la corrección de defectos críticos y el fortalecimiento de las pruebas, mejorando las métricas de SonarQube y asegurando un proyecto más robusto y mantenible para futuras iteraciones.
