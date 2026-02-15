@@ -44,21 +44,35 @@ class TestSecureFileTransfer(unittest.TestCase):
 
         self.assertEqual(original_hash, received_hash)
 
-    def test_confidentiality_ciphertext_not_plaintext(self):
-        """Ensure that encrypted data sent over network is not plaintext"""
+    def test_data_sent_is_encrypted(self):
+        """Test that transmitted data is encrypted and not plaintext"""
 
-        # Read original file
+        sent_data = bytearray()
+
+        original_send = server.socket.socket.send
+
+        def capture_send(self, data):
+            sent_data.extend(data)
+            return original_send(self, data)
+
+        # Patch server socket send
+        server.socket.socket.send = capture_send
+
+        try:
+            client.client_program()
+        finally:
+            # Restore original send
+            server.socket.socket.send = original_send
+
+        # Read original plaintext file
         with open(TEST_FILE, "rb") as f:
-            original_data = f.read()
+            plaintext = f.read()
 
-        client.client_program()
+        transmitted = bytes(sent_data)
 
-        with open(RECEIVED_FILE, "rb") as f:
-            received_data = f.read()
-
-        # Ensure file was not sent in plaintext
-        self.assertNotEqual(original_data, b"")  # sanity
-        self.assertEqual(original_data, received_data)
+        # Ensure plaintext is not directly sent
+        self.assertNotEqual(transmitted, plaintext)
+        self.assertNotIn(plaintext, transmitted)
 
     def test_integrity_protection(self):
         """Simulate tampering and ensure decryption fails"""
