@@ -9,12 +9,12 @@ from Crypto.Cipher import PKCS1_OAEP
 "data/server_data/Analisis_del_Codigo_Fuente_y_Metricas_Asociadas_S2_20250319.txt"
 
 FILE_REQUESTED = "data/server_data/example.txt"
-FILE_CREATED = "data/client_data/received_file.txt"
+FILE_RECEIVED = "data/client_data/received_file.txt"
 
 def prepare():
-    if os.path.exists(FILE_CREATED):
-        os.remove(FILE_CREATED)
-        print(f"Removed old file: {FILE_CREATED}")
+    if os.path.exists(FILE_RECEIVED):
+        os.remove(FILE_RECEIVED)
+        print(f"Removed old file: {FILE_RECEIVED}")
 
 def client_program():
     host = socket.gethostname()  # as both code is running on same pc
@@ -60,7 +60,7 @@ def client_program():
 
     print('Plaintext: ', plaintext)
 
-    with open(FILE_CREATED, "wb") as f:
+    with open(FILE_RECEIVED, "wb") as f:
         f.write(plaintext)
         
     print("File received successfully.")

@@ -8,9 +8,6 @@ import server
 import client
 
 
-TEST_FILE = "data/server_data/example.txt"
-RECEIVED_FILE = "data/client_data/received_file.txt"
-
 
 def hash_file(path):
     with open(path, "rb") as f:
@@ -21,8 +18,8 @@ class TestSecureFileTransfer(unittest.TestCase):
 
     def setUp(self):
         # Ensure old file removed
-        if os.path.exists(RECEIVED_FILE):
-            os.remove(RECEIVED_FILE)
+        if os.path.exists(client.FILE_RECEIVED):
+            os.remove(client.FILE_RECEIVED)
 
         # Start server in background thread
         self.server_thread = threading.Thread(target=server.server_program)
@@ -37,10 +34,10 @@ class TestSecureFileTransfer(unittest.TestCase):
 
         client.client_program()
 
-        self.assertTrue(os.path.exists(RECEIVED_FILE))
+        self.assertTrue(os.path.exists(client.FILE_RECEIVED))
 
-        original_hash = hash_file(TEST_FILE)
-        received_hash = hash_file(RECEIVED_FILE)
+        original_hash = hash_file(client.FILE_REQUESTED)
+        received_hash = hash_file(client.FILE_RECEIVED)
 
         self.assertEqual(original_hash, received_hash)
 
@@ -65,7 +62,7 @@ class TestSecureFileTransfer(unittest.TestCase):
             server.socket.socket.send = original_send
 
         # Read original plaintext file
-        with open(TEST_FILE, "rb") as f:
+        with open(client.FILE_REQUESTED, "rb") as f:
             plaintext = f.read()
 
         transmitted = bytes(sent_data)
